@@ -1,7 +1,12 @@
 {
     "files.eol": "\n",
+    "python.defaultInterpreterPath": "${workspaceFolder}/pylean/bin/python",
     "python.analysis.extraPaths": [
-        "/Lean/Algorithm.Python",
-        "/opt/miniconda3/lib/python3.8/site-packages"
+        "${workspaceFolder}/Algorithm.Python",
+        "${workspaceFolder}/pylean/lib/python3.6/site-packages"
+    ],
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/Algorithm.Python",
+        "${workspaceFolder}/pylean/lib/python3.6/site-packages"
     ]
 }
