@@ -25,7 +25,7 @@ class RiskManagementDemo:
         # Risk management parameters
         self.risk_per_trade = 0.02  # 2% risk per trade
         self.stop_loss_percent = 0.015  # 1.5% stop loss
-        self.take_profit_percent = 0.03  # 3% take profit (2:1 risk-reward)
+        self.take_profit_percent = 0.90  # 100% take profit (2:1 risk-reward)
         self.max_drawdown_percent = 0.50  # 50% max drawdown (higher to allow more trades)
         self.trailing_stop_percent = 0.02  # 2% trailing stop
         
@@ -40,6 +40,30 @@ class RiskManagementDemo:
         self.peak_equity = initial_capital
         self.max_drawdown = 0
         
+    def load_real_es_data(self):
+        """Load real ES futures data from CSV"""
+        try:
+            # Load the actual ES futures data
+            df = pd.read_csv('/home/rochen/Downloads/pylean/es_futures_actual_data.csv')
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            
+            # Select required columns
+            df = df[['timestamp', 'close', 'high', 'low', 'ema_20', 'ema_50']].copy()
+            df = df.rename(columns={'ema_20': 'ema_fast', 'ema_50': 'ema_slow'})
+            
+            # Remove any NaN values
+            df = df.dropna()
+            
+            print(f"Loaded {len(df)} days of real ES futures data")
+            print(f"Date range: {df['timestamp'].min()} to {df['timestamp'].max()}")
+            
+            return df
+            
+        except Exception as e:
+            print(f"Error loading real data: {e}")
+            print("Falling back to simulated data...")
+            return self.generate_sample_data()
+    
     def generate_sample_data(self, days=180):
         """Generate sample ES futures price data"""
         np.random.seed(42)
@@ -167,7 +191,7 @@ class RiskManagementDemo:
                     self.stop_loss_price = new_stop
     
     def check_exits(self, row):
-        """Check if stop loss or take profit hit"""
+        """Check if stop loss hit"""
         if self.position == 0:
             return False
         
@@ -176,10 +200,7 @@ class RiskManagementDemo:
             self.exit_position(self.stop_loss_price, row['timestamp'], 'STOP LOSS')
             return True
         
-        # Check take profit
-        if row['high'] >= self.take_profit_price:
-            self.exit_position(self.take_profit_price, row['timestamp'], 'TAKE PROFIT')
-            return True
+        # No take profit - let winners run with trailing stop only
         
         return False
     
@@ -207,21 +228,15 @@ class RiskManagementDemo:
         print(f"Max Drawdown: {self.max_drawdown_percent*100}%")
         print("="*70)
         
-        # Generate sample data
-        df = self.generate_sample_data(days=720)  # 2 years of data
+        # Load real ES futures data
+        df = self.load_real_es_data()
         
-        # Resample to hourly for faster demo
-        df_hourly = df.set_index('timestamp').resample('h').agg({
-            'close': 'last',
-            'high': 'max',
-            'low': 'min',
-            'ema_fast': 'last',
-            'ema_slow': 'last'
-        }).dropna().reset_index()
+        # Use daily data (already daily in the CSV)
+        df_daily = df.copy()
         
         # Run through data
         trades_checked = 0
-        for idx, row in df_hourly.iterrows():
+        for idx, row in df_daily.iterrows():
             # Record equity
             current_equity = self.cash + (self.position * row['close'] * 50 if self.position else 0)
             self.equity_curve.append({
@@ -244,7 +259,7 @@ class RiskManagementDemo:
             else:
                 # Look for entry signals (EMA crossover)
                 if idx > 50:  # Need enough data for EMA to stabilize
-                    prev_row = df_hourly.iloc[idx - 1]
+                    prev_row = df_daily.iloc[idx - 1]
                     
                     # Check if EMAs exist and are valid
                     if (pd.notna(row['ema_fast']) and pd.notna(row['ema_slow']) and
@@ -255,16 +270,11 @@ class RiskManagementDemo:
                             prev_row['ema_fast'] <= prev_row['ema_slow']):
                             self.enter_long(row['close'], row['timestamp'])
         
-        # Close any open position at the end
-        if self.position != 0:
-            last_row = df_hourly.iloc[-1]
-            self.exit_position(last_row['close'], last_row['timestamp'], 'END OF BACKTEST')
-        
         # Print final statistics
         self.print_statistics()
         
         # Generate plots
-        self.plot_results(df_hourly)
+        self.plot_results(df_daily)
     
     def print_statistics(self):
         """Print final backtest statistics"""

@@ -27,14 +27,34 @@ def load_es_futures_data():
         import urllib.request
         import ssl
         from io import StringIO
+        import base64
         
         # FRED series for S&P 500 index (close proxy for futures)
         # SP500 is the S&P 500 Index daily close
         series_id = "SP500"
         url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
         
+        # Setup proxy with authentication
+        proxy_user = 'rochen'
+        proxy_pass = 'Myheaven>9?L8x-10'
+        proxy_url = f'http://{proxy_user}:{proxy_pass}@proxy.westernasset.com:8080'
+        
+        proxy_handler = urllib.request.ProxyHandler({
+            'http': proxy_url,
+            'https': proxy_url
+        })
+        
+        auth_str = f'{proxy_user}:{proxy_pass}'.encode('utf-8')
+        base64_auth = base64.b64encode(auth_str).decode('ascii')
+        
+        opener = urllib.request.build_opener(proxy_handler)
+        urllib.request.install_opener(opener)
+        
         context = ssl._create_unverified_context()
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        req = urllib.request.Request(url, headers={
+            'User-Agent': 'Mozilla/5.0',
+            'Proxy-Authorization': f'Basic {base64_auth}'
+        })
         
         with urllib.request.urlopen(req, context=context, timeout=30) as response:
             data = response.read().decode('utf-8')
@@ -349,6 +369,12 @@ def plot_last_3_months(df):
     ax.set_ylabel('Price ($)', fontsize=12)
     ax.legend(loc='best')
     ax.grid(True, alpha=0.3)
+    
+    # Collect all peak and bottom dates for x-axis ticks
+    peak_bottom_dates = pd.concat([peak_data['timestamp'], bottom_data['timestamp']]).sort_values()
+    
+    # Hide x-axis labels on top chart
+    ax.set_xticks(peak_bottom_dates)
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     ax.tick_params(labelbottom=False)
     
@@ -357,11 +383,14 @@ def plot_last_3_months(df):
     ax2.plot(df_recent['timestamp'], df_recent['atr_10'], 'purple', linewidth=1.5, label='ATR(10)')
     ax2.fill_between(df_recent['timestamp'], df_recent['atr_10'], alpha=0.3, color='purple')
     ax2.set_ylabel('ATR (10-day)', fontsize=12)
-    ax2.set_xlabel('Date', fontsize=12)
-    ax2.legend(loc='best')
+    ax2.set_xlabel('Peak/Bottom Dates', fontsize=12)
+    ax2.legend(loc='upper left', fontsize=9)
     ax2.grid(True, alpha=0.3)
+    
+    # Show peak/bottom dates on bottom subplot x-axis
+    ax2.set_xticks(peak_bottom_dates)
     ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-    plt.xticks(rotation=45)
+    ax2.tick_params(axis='x', rotation=90, labelsize=7)
     
     plt.tight_layout()
     
