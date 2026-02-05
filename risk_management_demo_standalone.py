@@ -119,6 +119,7 @@ class RiskManagementDemo:
         
         self.position = quantity
         self.entry_price = price
+        self.entry_timestamp = timestamp  # Track entry timestamp
         self.cash -= margin_required  # Deduct margin, not full contract value
         
         # Set stop loss and take profit
@@ -148,7 +149,9 @@ class RiskManagementDemo:
         
         # Record trade
         trade = {
-            'timestamp': timestamp,
+            'entry_timestamp': self.entry_timestamp,  # Entry date
+            'exit_timestamp': timestamp,              # Exit date
+            'timestamp': timestamp,                   # For backward compatibility
             'entry_price': self.entry_price,
             'exit_price': price,
             'quantity': self.position,

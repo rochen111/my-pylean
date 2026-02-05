@@ -139,11 +139,11 @@ def calculate_yearly_volatility(df):
         days_3sigma = (abs_changes > two_sigma).sum()
         
         print(f"{year:<6}   "
-              f"{one_sigma:>5.0f} pts      "
+              f"±{one_sigma:>3.0f} pts      "
               f"{days_1sigma:<8}   "
-              f"{two_sigma:>5.0f} pts      "
+              f"±{two_sigma:>3.0f} pts      "
               f"{days_2sigma:<8}   "
-              f"{three_sigma:>5.0f} pts      "
+              f"±{three_sigma:>3.0f} pts      "
               f"{days_3sigma:<8}")
     
     print("\n" + "="*80)
@@ -236,3 +236,42 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""
+Stop loss sizing depends on your risk tolerance and strategy, but here's the standard approach:
+
+Common Practices:
+
+1. 1σ (68% probability) - Most aggressive
+
+Stops you out on normal daily volatility
+High win rate but frequent stops
+Good for scalping/day trading with tight risk
+Example (2025): 67 pts = $3,350 per contract
+2. 2σ (95% probability) - Most common ✓
+
+Allows normal volatility but protects against larger moves
+Balance between protection and not getting stopped out unnecessarily
+Most traders use 1.5σ to 2σ
+Example (2025): 134 pts = $6,700 per contract
+3. 3σ (99.7% probability) - Most conservative
+
+Only extreme moves hit your stop
+Lower win rate, larger losses when wrong
+Better for swing trading/position trading
+Example (2025): 200 pts = $10,000 per contract
+Recommended Formula:
+
+
+Stop Loss = Entry Price ± (Volatility × Multiplier)Where Multiplier = 1.5 to 2.0 (most common)
+Risk Management Rules:
+
+Never risk more than 1-2% of account per trade
+If 2σ stop = $6,700, you need $335,000+ account (at 2% risk)
+Adjust position size based on stop distance, not fixed contracts
+From our 2025 data:
+
+1σ: 201 days (80%) stayed within range
+2σ: 42 days (17%) needed 2σ protection
+3σ+: 7 days (3%) were extreme moves
+Answer: Use 2σ for most strategies - it protects against 95% of moves while not getting stopped out on normal volatility.
+"""

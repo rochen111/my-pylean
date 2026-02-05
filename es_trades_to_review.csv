@@ -1,0 +1,17 @@
+timestamp,entry_price,exit_price,quantity,pnl,reason,setup_type,market_condition,entry_reasoning,exit_reasoning,trade_plan,execution_quality,emotional_state,mistakes_made,lessons_learned,notes,tags,performance_rating
+2017-03-21,2176.94,2348.0408,1,8555.040000000008,STOP LOSS,EMA Crossover,Trending Up,Clean EMA 20/50 crossover with strong momentum,Hit profit target as price continued higher,,8,,,,Good trade - followed plan perfectly,,9
+2018-05-29,2730.13,2689.17805,1,-2047.5975000000062,STOP LOSS,EMA Crossover,Choppy,EMA crossover but lower conviction,Stopped out as market reversed quickly,,6,,Entered despite choppy market conditions,Avoid trading in choppy conditions even with signals,,,5
+2019-03-07,2724.87,2747.6162,1,1137.3100000000022,STOP LOSS,,,,,,,,,,,,
+2019-08-01,2879.84,2965.3428,1,4275.139999999988,STOP LOSS,,,,,,,,,,,,
+2019-10-01,2978.43,2933.75355,1,-2233.8224999999966,STOP LOSS,,,,,,,,,,,,
+2020-05-12,2930.32,2886.3652,1,-2197.739999999999,STOP LOSS,,,,,,,,,,,,
+2021-11-26,4486.46,4610.4492,1,6199.459999999999,STOP LOSS,,,,,,,,,,,,
+2022-03-31,4602.45,4533.41325,1,-3451.8375000000106,STOP LOSS,,,,,,,,,,,,
+2022-08-19,4155.17,4219.096,1,3196.299999999974,STOP LOSS,,,,,,,,,,,,
+2022-09-13,4110.41,4048.7538499999996,1,-3082.8075000000126,STOP LOSS,,,,,,,,,,,,
+2022-11-17,3991.73,3931.85405,1,-2993.797500000005,STOP LOSS,,,,,,,,,,,,
+2023-01-18,3983.17,3923.42245,1,-2987.3775000000023,STOP LOSS,,,,,,,,,,,,
+2023-04-26,4109.31,4047.6703500000003,1,-3081.9825000000037,STOP LOSS,,,,,,,,,,,,
+2024-01-03,4502.88,4687.683,1,9240.149999999994,STOP LOSS,,,,,,,,,,,,
+2024-09-03,5543.22,5535.432,1,-389.4000000000233,STOP LOSS,,,,,,,,,,,,
+2025-05-23,5892.58,5804.1912999999995,1,-4419.435000000021,STOP LOSS,,,,,,,,,,,,

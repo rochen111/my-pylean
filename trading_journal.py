@@ -157,6 +157,19 @@ class TradingJournal:
         # Calculate additional metrics
         trade_enriched = trade_data.copy()
         
+        # Handle timestamps for entry/exit dates and duration
+        if 'entry_timestamp' not in trade_enriched and 'timestamp' in trade_enriched:
+            # If only timestamp exists, use it as exit, calculate entry from duration if available
+            trade_enriched['exit_timestamp'] = trade_enriched['timestamp']
+        
+        if 'entry_timestamp' in trade_enriched and 'exit_timestamp' in trade_enriched:
+            # Calculate trade duration
+            entry_dt = pd.to_datetime(trade_enriched['entry_timestamp'])
+            exit_dt = pd.to_datetime(trade_enriched['exit_timestamp'])
+            duration = exit_dt - entry_dt
+            trade_enriched['duration_days'] = duration.days
+            trade_enriched['duration_hours'] = duration.total_seconds() / 3600
+        
         # Add calculated fields
         if 'entry_price' in trade_enriched and 'exit_price' in trade_enriched:
             trade_enriched['price_change'] = trade_enriched['exit_price'] - trade_enriched['entry_price']
@@ -173,6 +186,27 @@ class TradingJournal:
         
         # Add timestamp for journal entry
         trade_enriched['journal_entry_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Calculate streak information
+        if 'pnl' in trade_enriched:
+            is_win = trade_enriched['pnl'] > 0
+            
+            # Calculate current streak based on previous trades
+            if len(self.trades) > 0:
+                last_trade = self.trades[-1]
+                last_streak = last_trade.get('current_streak', 0)
+                
+                if is_win:
+                    # If last streak was positive (winning), increment it
+                    # If last streak was negative (losing), reset to +1
+                    trade_enriched['current_streak'] = last_streak + 1 if last_streak > 0 else 1
+                else:
+                    # If last streak was negative (losing), decrement it
+                    # If last streak was positive (winning), reset to -1
+                    trade_enriched['current_streak'] = last_streak - 1 if last_streak < 0 else -1
+            else:
+                # First trade
+                trade_enriched['current_streak'] = 1 if is_win else -1
         
         # Add empty fields for later filling
         journal_fields = [
@@ -317,6 +351,20 @@ class TradingJournal:
             print(f"Worst Trade: {df['r_multiple'].min():.2f}R")
             print()
         
+        # Streak analysis
+        if 'current_streak' in df.columns:
+            longest_win_streak = df[df['current_streak'] > 0]['current_streak'].max() if len(df[df['current_streak'] > 0]) > 0 else 0
+            longest_loss_streak = abs(df[df['current_streak'] < 0]['current_streak'].min()) if len(df[df['current_streak'] < 0]) > 0 else 0
+            current_streak = df.iloc[-1]['current_streak'] if len(df) > 0 else 0
+            
+            print(f"Longest Winning Streak: {int(longest_win_streak)} trades")
+            print(f"Longest Losing Streak: {int(longest_loss_streak)} trades")
+            if current_streak > 0:
+                print(f"Current Streak: {int(current_streak)} wins 🔥")
+            elif current_streak < 0:
+                print(f"Current Streak: {int(abs(current_streak))} losses 📉")
+            print()
+        
         # Setup type analysis
         if 'setup_type' in df.columns and df['setup_type'].notna().any():
             print("Performance by Setup Type:")
@@ -374,7 +422,25 @@ class TradingJournal:
             win_loss = "WIN" if row['pnl'] > 0 else "LOSS"
             
             print(f"\nTrade #{trade_num} - {win_loss}")
-            print(f"  Date: {row['timestamp']}")
+            
+            # Display entry and exit dates
+            if 'entry_timestamp' in row and pd.notna(row['entry_timestamp']):
+                print(f"  Entry Date: {pd.to_datetime(row['entry_timestamp']).strftime('%Y-%m-%d %H:%M')}")
+            if 'exit_timestamp' in row and pd.notna(row['exit_timestamp']):
+                print(f"  Exit Date:  {pd.to_datetime(row['exit_timestamp']).strftime('%Y-%m-%d %H:%M')}")
+            elif 'timestamp' in row:
+                print(f"  Exit Date:  {pd.to_datetime(row['timestamp']).strftime('%Y-%m-%d %H:%M')}")
+            
+            # Display duration
+            if 'duration_days' in row and pd.notna(row['duration_days']):
+                days = int(row['duration_days'])
+                hours = int(row['duration_hours']) % 24 if 'duration_hours' in row else 0
+                if days > 0:
+                    print(f"  Duration: {days} days, {hours} hours")
+                else:
+                    hours_total = int(row['duration_hours']) if 'duration_hours' in row else 0
+                    print(f"  Duration: {hours_total} hours")
+            
             print(f"  Entry: ${row['entry_price']:.2f} → Exit: ${row['exit_price']:.2f}")
             print(f"  Quantity: {row['quantity']} contracts")
             print(f"  P&L: ${row['pnl']:,.2f}")
@@ -383,14 +449,57 @@ class TradingJournal:
             if 'r_multiple' in row and pd.notna(row['r_multiple']):
                 print(f"  R-Multiple: {row['r_multiple']:.2f}R")
             
-            if 'setup_type' in row and row['setup_type']:
-                print(f"  Setup: {row['setup_type']}")
+            # Display streak
+            if 'current_streak' in row and pd.notna(row['current_streak']):
+                streak = int(row['current_streak'])
+                if streak > 0:
+                    print(f"  Streak: {streak} wins in a row 🔥")
+                elif streak < 0:
+                    print(f"  Streak: {abs(streak)} losses in a row 📉")
             
-            if 'performance_rating' in row and row['performance_rating']:
-                print(f"  Self-Rating: {row['performance_rating']}/10")
+            # Helper function to check if field has value (not empty, not NaN)
+            def has_value(field):
+                return field in row and pd.notna(row[field]) and str(row[field]).strip() != ''
             
-            if 'notes' in row and row['notes']:
-                print(f"  Notes: {row['notes']}")
+            # SETUP DESCRIPTION & QUALITY
+            if has_value('setup_type'):
+                print(f"\n  📊 Setup Type: {row['setup_type']}")
+            
+            if has_value('market_condition'):
+                print(f"  📈 Market Condition: {row['market_condition']}")
+            
+            if has_value('confluence_factors'):
+                print(f"  ✓ Confluence Factors: {row['confluence_factors']}")
+            
+            # TRADE NOTES & CONTEXT
+            if has_value('entry_reasoning'):
+                print(f"\n  💭 Entry Reasoning: {row['entry_reasoning']}")
+            
+            if has_value('exit_reasoning'):
+                print(f"  💭 Exit Reasoning: {row['exit_reasoning']}")
+            
+            if has_value('trade_plan'):
+                print(f"  📝 Trade Plan: {row['trade_plan']}")
+            
+            # EXECUTION & EMOTION
+            if has_value('execution_quality'):
+                print(f"\n  ⭐ Execution Quality: {row['execution_quality']}/10")
+            
+            if has_value('performance_rating'):
+                print(f"  ⭐ Performance Rating: {row['performance_rating']}/10")
+            
+            if has_value('emotional_state'):
+                print(f"  😊 Emotional State: {row['emotional_state']}")
+            
+            # POST-TRADE REVIEW
+            if has_value('mistakes_made'):
+                print(f"\n  ❌ Mistakes: {row['mistakes_made']}")
+            
+            if has_value('lessons_learned'):
+                print(f"  💡 Lessons Learned: {row['lessons_learned']}")
+            
+            if has_value('notes'):
+                print(f"\n  📌 Notes: {row['notes']}")
         
         print("="*70)
     
@@ -537,6 +646,7 @@ def demo_journal_workflow():
             'setup_type': 'EMA Crossover',
             'market_condition': 'Trending Up',
             'entry_reasoning': 'Clean EMA 20/50 crossover with strong momentum',
+            'exit_reasoning': 'Hit profit target as price continued higher',
             'execution_quality': 8,
             'performance_rating': 9,
             'notes': 'Good trade - followed plan perfectly'
@@ -545,6 +655,7 @@ def demo_journal_workflow():
             'setup_type': 'EMA Crossover',
             'market_condition': 'Choppy',
             'entry_reasoning': 'EMA crossover but lower conviction',
+            'exit_reasoning': 'Stopped out as market reversed quickly',
             'mistakes_made': 'Entered despite choppy market conditions',
             'execution_quality': 6,
             'performance_rating': 5,
