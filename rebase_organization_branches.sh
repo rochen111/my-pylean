@@ -1,8 +1,26 @@
 #!/bin/bash
 
+set -euo pipefail
+
+confirm_clean() {
+    if [[ "${LEAN_REBASE_CLEAN_CONFIRM:-}" == "yes" ]]; then
+        return 0
+    fi
+
+    echo "This script runs: git clean -xqdf"
+    echo "It will DELETE all untracked/ignored files in this repo."
+    read -r -p "Continue? Type YES to proceed: " answer
+    if [[ "$answer" != "YES" ]]; then
+        echo "Aborted. No cleanup was performed."
+        exit 1
+    fi
+}
+
 echo "Start Rebasing Organization Branches"
 git config user.name "$(git log -n 1 --pretty=format:%an)"
 git config user.email "$(git log -n 1 --pretty=format:%ae)"
+
+confirm_clean
 
 git remote set-branches origin '*'
 git checkout -- .
