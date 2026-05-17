@@ -73,6 +73,11 @@ operations so ClickHouse fails fast with a query error instead of exhausting the
 Depending on kernel/build, the process name may appear as `clickhouse-server` or another
 truncated variant, so match on `clickhouse` in OOM logs.
 
+```bash
+sudo dmesg | grep -Ei 'oom|clickhouse'
+sudo journalctl -k | grep -Ei 'oom|clickhouse'
+```
+
 ## Repository Cleanup
 
 This repository has been optimized from the original LEAN codebase:

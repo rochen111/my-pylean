@@ -1,7 +1,7 @@
 <clickhouse>
     <profiles>
         <default>
-            <!-- Tune this to ~25-50% of VM RAM; 512 MiB is a safe default for small VMs -->
+            <!-- Tune this to ~25-50% of VM RAM (example: 2 GiB VM => 512 MiB to 1 GiB) -->
             <!-- 512 MiB -->
             <max_memory_usage>536870912</max_memory_usage>
             <!-- 128 MiB -->
