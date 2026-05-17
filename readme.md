@@ -70,6 +70,8 @@ sudo systemctl restart clickhouse-server
 
 This profile caps per-query memory and enables spilling for large `GROUP BY`/`ORDER BY`
 operations so ClickHouse fails fast with a query error instead of exhausting the VM.
+Depending on kernel/build, the process name may appear as `clickhouse-server` or another
+truncated variant, so match on `clickhouse` in OOM logs.
 
 ## Repository Cleanup
 
