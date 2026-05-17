@@ -1,9 +1,13 @@
 <clickhouse>
     <profiles>
         <default>
+            <!-- 512MB -->
             <max_memory_usage>536870912</max_memory_usage>
+            <!-- 128MB -->
             <max_bytes_before_external_group_by>134217728</max_bytes_before_external_group_by>
+            <!-- 128MB -->
             <max_bytes_before_external_sort>134217728</max_bytes_before_external_sort>
+            <!-- 1GB -->
             <max_temporary_data_on_disk_size_for_user>1073741824</max_temporary_data_on_disk_size_for_user>
         </default>
     </profiles>
