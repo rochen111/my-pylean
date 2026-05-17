@@ -63,6 +63,7 @@ Lean CLI uses Docker to run backtests locally. If you don't have Docker:
 1. **Use cloud backtesting**: Upload your algorithms to QuantConnect
 2. **Request Docker access**: Ask your system admin to install Docker
 3. **Write algorithms locally**: Develop with autocomplete, backtest in the cloud
+4. **Prefer cloud backtesting on low-memory hosts**: Local Docker backtests can fail when RAM is limited
 
 ## 📂 Your Algorithm is Ready
 
@@ -95,6 +96,26 @@ Use cloud backtesting instead:
 ./lean-cli.sh cloud login
 ./lean-cli.sh cloud backtest my-project
 ```
+
+### Debian 12 OOM: `Killed process ... (clickhouse-serv)`
+
+If you see kernel messages like:
+`Out of memory: Killed process ... (clickhouse-serv)`, your host is running out of RAM during local Docker backtests.
+
+Use one or more of these mitigations:
+
+1. **Best quick fix:** run backtests in QuantConnect cloud instead of local Docker:
+   ```bash
+   ./lean-cli.sh cloud backtest my-project
+   ```
+2. **Add swap on Debian 12** (helps prevent OOM kills):
+   ```bash
+   sudo fallocate -l 4G /swapfile
+   sudo chmod 600 /swapfile
+   sudo mkswap /swapfile
+   sudo swapon /swapfile
+   ```
+3. **Reduce memory pressure:** stop other memory-heavy containers/processes before running `lean backtest`.
 
 ### Python Version Issues
 
