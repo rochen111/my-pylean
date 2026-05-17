@@ -59,7 +59,7 @@ pip install pandas numpy matplotlib scipy requests beautifulsoup4
 ## ClickHouse OOM Protection (Debian/VM)
 
 If your VM hangs and kernel logs show `Out of memory ... Killed process ... clickhouse-serv`
-(the kernel truncates `clickhouse-server` to `clickhouse-serv` in this message),
+(many kernels truncate `clickhouse-server`; exact process-name display can vary),
 apply the profile below and restart ClickHouse:
 
 ```bash
