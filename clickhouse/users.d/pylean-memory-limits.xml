@@ -1,14 +1,14 @@
 <clickhouse>
     <profiles>
         <default>
-            <!-- Tune this to ~25-50% of VM RAM; 512MB is a safe default for small VMs -->
-            <!-- 512MB -->
+            <!-- Tune this to ~25-50% of VM RAM; 512 MiB is a safe default for small VMs -->
+            <!-- 512 MiB -->
             <max_memory_usage>536870912</max_memory_usage>
-            <!-- 128MB -->
+            <!-- 128 MiB -->
             <max_bytes_before_external_group_by>134217728</max_bytes_before_external_group_by>
-            <!-- 128MB -->
+            <!-- 128 MiB -->
             <max_bytes_before_external_sort>134217728</max_bytes_before_external_sort>
-            <!-- 1GB -->
+            <!-- 1 GiB -->
             <max_temporary_data_on_disk_size_for_user>1073741824</max_temporary_data_on_disk_size_for_user>
         </default>
     </profiles>
