@@ -56,6 +56,20 @@ pip install pandas numpy matplotlib scipy requests beautifulsoup4
 - scipy - Peak/bottom detection
 - requests - HTTP downloads
 
+## ClickHouse OOM Protection (Debian/VM)
+
+If your VM hangs and kernel logs show `Out of memory ... Killed process ... clickhouse-serv`,
+apply the profile below and restart ClickHouse:
+
+```bash
+sudo mkdir -p /etc/clickhouse-server/users.d
+sudo cp clickhouse/users.d/pylean-memory-limits.xml /etc/clickhouse-server/users.d/
+sudo systemctl restart clickhouse-server
+```
+
+This profile caps per-query memory and enables spilling for large `GROUP BY`/`ORDER BY`
+operations so ClickHouse fails fast with a query error instead of exhausting the VM.
+
 ## Repository Cleanup
 
 This repository has been optimized from the original LEAN codebase:
