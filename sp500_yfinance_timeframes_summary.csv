@@ -1,0 +1,7 @@
+interval,period,status,rows,start,end,file
+5m,60d,ok,4680,2026-02-20 14:30:00+00:00,2026-05-15 19:55:00+00:00,sp500_5m_yfinance_data.csv
+60m,60d,ok,420,2026-02-20 14:30:00+00:00,2026-05-15 19:30:00+00:00,sp500_1h_yfinance_data.csv
+1d,max,ok,24710,1927-12-30 00:00:00,2026-05-15 00:00:00,sp500_1d_yfinance_data.csv
+1wk,max,ok,5133,1927-12-26 00:00:00,2026-05-11 00:00:00,sp500_1wk_yfinance_data.csv
+1mo,max,ok,497,1985-01-01 00:00:00,2026-05-01 00:00:00,sp500_1mo_yfinance_data.csv
+3mo,max,ok,166,1984-12-01 00:00:00,2026-03-01 00:00:00,sp500_3mo_yfinance_data.csv
