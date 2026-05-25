@@ -64,7 +64,7 @@ apply the profile below and restart ClickHouse:
 
 ```bash
 sudo mkdir -p /etc/clickhouse-server/users.d
-sudo cp clickhouse/users.d/pylean-memory-limits.xml /etc/clickhouse-server/users.d/
+sudo cp clickhouse/users.d/memory-limits.xml /etc/clickhouse-server/users.d/
 sudo systemctl restart clickhouse-server
 ```
 
