@@ -103,6 +103,60 @@ git push origin master
 The merge brings in a large number of upstream commits, so the push may be sizable.
 Do **not** push automatically unless the user asks.
 
+#### 6a. Authentication (origin is HTTPS by default, but this env has no HTTPS creds)
+`origin` is configured for HTTPS (`https://github.com/<owner>/my-pylean.git`), and this
+environment has **no stored HTTPS credentials** (`gh` not logged in, no `GH_TOKEN`), so an
+HTTPS push fails with `could not read Username for 'https://github.com'`.
+
+Use the existing SSH key instead:
+```bash
+ssh -o BatchMode=yes -T git@github.com          # expect: "Hi <user>! You've successfully authenticated"
+git remote set-url origin git@github.com:<owner>/my-pylean.git
+git push --dry-run origin master                # verify write access WITHOUT writing
+git push origin master
+```
+The SSH key identifies whoever it belongs to (here `jyck613`). Pushing to another owner's
+repo (e.g. `rochen111/my-pylean`) requires that user to have **write/collaborator access**
+on the repo. A `--dry-run` that prints `! [remote rejected] ... denied to <user>` means
+access is missing — the repo **owner** must add the user as a collaborator with Write
+(Settings -> Collaborators, or `gh api -X PUT repos/<owner>/<repo>/collaborators/<user> -f permission=push`),
+and the user must accept the invite.
+
+#### 6b. Email-privacy push rejection (GH007)
+If the pusher's GitHub account has "Keep my email address private" + "Block command line
+pushes that expose my email", the push is rejected:
+```
+remote: error: GH007: Your push would publish a private email address.
+```
+This happens when local commits were authored with a real email (e.g. `user@gmail.com`).
+Fix by re-authoring **only your own** commits to the account's noreply email, then push.
+
+1. Find the account's numeric id and build the noreply address `<id>+<user>@users.noreply.github.com`:
+   ```bash
+   curl -s https://api.github.com/users/<user> | grep -E '"id"|"login"'
+   git config user.email "<id>+<user>@users.noreply.github.com"   # fix future commits too
+   ```
+2. Rewrite ONLY non-upstream commits so upstream SHAs stay intact (critical — using a full
+   `origin/master..HEAD` range re-hashes the pulled upstream commits and makes every future
+   sync think it is 100+ commits "behind"). Scope with `--not upstream/master`:
+   ```bash
+   FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch -f --env-filter '
+   if [ "$GIT_AUTHOR_EMAIL" = "<old-email>" ]; then
+     export GIT_AUTHOR_EMAIL="<id>+<user>@users.noreply.github.com"
+   fi
+   if [ "$GIT_COMMITTER_EMAIL" = "<old-email>" ]; then
+     export GIT_COMMITTER_EMAIL="<id>+<user>@users.noreply.github.com"
+   fi
+   ' -- HEAD --not upstream/master
+   ```
+3. Verify, then push (force-with-lease if a previous bad attempt was already pushed):
+   ```bash
+   git rev-list --count HEAD..upstream/master     # must still be 0
+   git merge-base --is-ancestor upstream/master HEAD && echo "upstream preserved"
+   git log HEAD --not upstream/master --format='%ae %ce' | grep -c '<old-email>'   # must be 0
+   git push --force-with-lease origin master
+   ```
+
 ## Safety Rules
 - Do the non-destructive `fetch` and assessment before touching the working tree.
 - Never discard uncommitted work without explicit user confirmation.
@@ -110,9 +164,14 @@ Do **not** push automatically unless the user asks.
 - Prefer `merge` over rebase for this fork to keep contribution history intact.
 - Only `git rm` conflicts that fall inside the fork's intentionally-removed directories
   (`Tests/`, `Data/`, `Documentation/`, `.github/workflows/`). Anything else gets a manual review.
+- Push over **SSH** (this env lacks HTTPS creds); confirm write access with `git push --dry-run` first.
+- On `GH007` email-privacy rejection, re-author only your own commits to the noreply email and
+  scope any history rewrite with `--not upstream/master` so upstream SHAs are preserved.
+- Set local `git config user.email` to the noreply address up front to avoid `GH007` entirely.
 
 ## Success Criteria
-- `HEAD..upstream/master` count is `0`.
+- `HEAD..upstream/master` count is `0` (before AND after any email rewrite).
 - Local contribution commits remain (`upstream/master..HEAD` > 0).
 - Custom scripts/docs still present; no virtualenv or large blob committed.
-- Working tree clean.
+- No private email published in pushed commits.
+- Working tree clean; `origin/master` in sync with local `master`.
