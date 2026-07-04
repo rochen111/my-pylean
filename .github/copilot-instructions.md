@@ -27,6 +27,15 @@ When a request is about discovering GitHub repositories for niche topics, hidden
    - Scenario picks (starter, production, experimental)
    - Caveats and unknowns
 
+When a request is about syncing this fork with upstream QuantConnect Lean (e.g. "sync upstream", "update from QuantConnect", "merge upstream/master", "catch the fork up"):
+
+1. Use the `sync-upstream-lean` skill workflow.
+2. Always fetch and assess divergence before touching the working tree.
+3. Merge (do not rebase) `upstream/master` into `master` to preserve local contributions.
+4. Resolve `DU` (deleted-by-us) conflicts in the fork's intentionally-removed areas
+   (`Tests/`, `Data/`, `Documentation/`, `.github/workflows/`) by keeping them deleted.
+5. Never commit virtualenvs (`.venv/`, `pylean/`) or large generated data; only push when asked.
+
 For non-repo-discovery coding tasks, follow normal project instructions and do not force this workflow.
 
 ## Usage Examples
