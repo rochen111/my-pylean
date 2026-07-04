@@ -1,6 +1,8 @@
 {
     "files.eol": "\n",
-    "python.defaultInterpreterPath": "${workspaceFolder}/pylean/bin/python",
+    "terminal.integrated.cwd": "/home/jyck613/dev",
+    "python.defaultInterpreterPath": "/home/jyck613/dev/my-pylean/.venv",
+    "python.terminal.activateEnvironment": false,
     "python.analysis.extraPaths": [
         "${workspaceFolder}/Algorithm.Python",
         "${workspaceFolder}/pylean/lib/python3.6/site-packages"
@@ -8,5 +10,7 @@
     "python.autoComplete.extraPaths": [
         "${workspaceFolder}/Algorithm.Python",
         "${workspaceFolder}/pylean/lib/python3.6/site-packages"
-    ]
+    ],
+    "git.ignoreLimitWarning": true,
+    "github.copilot.chat.localIndex.enabled": true
 }

@@ -27,6 +27,14 @@ from pythonnet import set_runtime
 # start.py file, and find the runtimeconfig.json relative to that.
 set_runtime(clr_loader.get_coreclr(runtime_config=os.path.join(os.path.dirname(os.path.realpath(__file__)), "QuantConnect.Lean.Launcher.runtimeconfig.json")))
 
+# On Linux/.NET, System.Drawing may not be auto-loaded; preload if available.
+try:
+    from clr import AddReference
+    AddReference("System.Drawing.Common")
+except Exception:
+    # Keep startup resilient across images where this assembly is absent.
+    pass
+
 from AlgorithmImports import *
 
 # Used by pythonNet
